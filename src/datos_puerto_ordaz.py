@@ -26,28 +26,29 @@ def crear_grafo_puerto_ordaz() -> Grafo:
     
     # ========== DEFINICIÓN DE VÉRTICES (INTERSECCIONES) ==========
     # Cada vértice representa una intersección importante
-    # Las coordenadas son relativas para visualización (no son coordenadas GPS reales)
+    # Coordenadas aproximadas basadas en la ubicación real de Puerto Ordaz
+    # (longitud, latitud) - ajustadas para mejor visualización tipo mapa
     
     vertices = [
-        # ID, Nombre, Coordenadas (x, y)
-        ("V1", "Av. Guayana con Calle Bolivia", (2, 8)),
-        ("V2", "Av. Guayana con Calle Chile", (4, 8)),
-        ("V3", "Av. Guayana con Calle Perú", (6, 8)),
-        ("V4", "Av. Guayana con Calle Venezuela", (8, 8)),
+        # ID, Nombre, Coordenadas (lon, lat) - aproximadas para visualización
+        ("V1", "Av. Guayana con Calle Bolivia", (-62.745, 8.285)),
+        ("V2", "Av. Guayana con Calle Chile", (-62.730, 8.285)),
+        ("V3", "Av. Guayana con Calle Perú", (-62.715, 8.285)),
+        ("V4", "Av. Guayana con Calle Venezuela", (-62.700, 8.285)),
         
-        ("V5", "Av. Las Américas con Calle Bolivia", (2, 6)),
-        ("V6", "Av. Las Américas con Calle Chile", (4, 6)),
-        ("V7", "Av. Las Américas con Calle Perú", (6, 6)),
-        ("V8", "Av. Las Américas con Calle Venezuela", (8, 6)),
+        ("V5", "Av. Las Américas con Calle Bolivia", (-62.745, 8.270)),
+        ("V6", "Av. Las Américas con Calle Chile", (-62.730, 8.270)),
+        ("V7", "Av. Las Américas con Calle Perú", (-62.715, 8.270)),
+        ("V8", "Av. Las Américas con Calle Venezuela", (-62.700, 8.270)),
         
-        ("V9", "Av. Villa Asia con Calle Bolivia", (2, 4)),
-        ("V10", "Av. Villa Asia con Calle Chile", (4, 4)),
-        ("V11", "Av. Villa Asia con Calle Perú", (6, 4)),
-        ("V12", "Av. Villa Asia con Calle Venezuela", (8, 4)),
+        ("V9", "Av. Villa Asia con Calle Bolivia", (-62.745, 8.255)),
+        ("V10", "Av. Villa Asia con Calle Chile", (-62.730, 8.255)),
+        ("V11", "Av. Villa Asia con Calle Perú", (-62.715, 8.255)),
+        ("V12", "Av. Villa Asia con Calle Venezuela", (-62.700, 8.255)),
         
-        ("V13", "Centro Cívico", (5, 2)),
-        ("V14", "Plaza Mayor Alta Vista", (5, 10)),
-        ("V15", "Terminal de Autobuses", (1, 5)),
+        ("V13", "Centro Cívico", (-62.720, 8.240)),
+        ("V14", "Plaza Mayor Alta Vista", (-62.720, 8.300)),
+        ("V15", "Terminal de Autobuses", (-62.755, 8.265)),
     ]
     
     for id_vertice, nombre, coordenadas in vertices:

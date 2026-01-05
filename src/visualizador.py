@@ -14,7 +14,7 @@ import networkx as nx
 
 def dibujar_grafo(grafo, ax, ruta_resaltada: List[str] = None):
     """
-    Dibuja el grafo en un eje de matplotlib.
+    Dibuja el grafo en un eje de matplotlib con estilo de mapa.
     
     Args:
         grafo: Instancia de la clase Grafo
@@ -23,11 +23,12 @@ def dibujar_grafo(grafo, ax, ruta_resaltada: List[str] = None):
     """
     ax.clear()
     
-    # Configurar el gráfico
-    ax.set_title('Red Urbana de Puerto Ordaz', fontsize=14, fontweight='bold', pad=20)
-    ax.set_xlabel('Posición Oeste-Este', fontsize=10)
-    ax.set_ylabel('Posición Sur-Norte', fontsize=10)
-    ax.grid(True, alpha=0.3, linestyle='--')
+    # Configurar el gráfico con estilo de mapa
+    ax.set_facecolor('#f5f5dc')  # Color beige claro tipo mapa
+    ax.set_title('Mapa de Puerto Ordaz - Red Vial', fontsize=16, fontweight='bold', pad=20)
+    ax.set_xlabel('Longitud Oeste', fontsize=11)
+    ax.set_ylabel('Latitud Norte', fontsize=11)
+    ax.grid(True, alpha=0.2, linestyle=':', color='gray', linewidth=0.5)
     
     # Dibujar aristas (calles)
     for vertice_origen in grafo.vertices:
@@ -45,80 +46,102 @@ def dibujar_grafo(grafo, ax, ruta_resaltada: List[str] = None):
                         break
             
             if es_ruta:
-                # Dibujar arista de la ruta en color destacado
-                ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
-                           arrowprops=dict(arrowstyle='->', lw=3, color='red', 
-                                         connectionstyle="arc3,rad=0.1"))
+                # Dibujar arista de la ruta en color destacado (ruta activa)
+                ax.plot([x1, x2], [y1, y2], color='#FF0000', linewidth=4, 
+                       alpha=0.9, zorder=2, solid_capstyle='round')
+                # Añadir flecha en el medio
+                mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
+                dx, dy = x2 - x1, y2 - y1
+                ax.annotate('', xy=(mid_x + dx*0.1, mid_y + dy*0.1), 
+                           xytext=(mid_x - dx*0.1, mid_y - dy*0.1),
+                           arrowprops=dict(arrowstyle='->', lw=2.5, color='#FF0000'))
             else:
-                # Dibujar arista normal
-                ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
-                           arrowprops=dict(arrowstyle='->', lw=1, color='gray', 
-                                         alpha=0.4, connectionstyle="arc3,rad=0.1"))
+                # Dibujar arista normal (calle)
+                ax.plot([x1, x2], [y1, y2], color='#696969', linewidth=2, 
+                       alpha=0.3, zorder=1, solid_capstyle='round')
     
-    # Dibujar vértices (intersecciones)
+    # Dibujar vértices (intersecciones) con estilo de mapa
     for vertice in grafo.vertices:
         x, y = grafo.coordenadas.get(vertice, (0, 0))
         
         # Determinar el color y tamaño según si es parte de la ruta
         if ruta_resaltada:
             if vertice == ruta_resaltada[0]:
-                # Vértice de inicio
-                color = 'green'
-                tamaño = 400
+                # Vértice de inicio (origen)
+                color = '#00AA00'
+                tamaño = 500
                 marcador = 'o'
+                borde = 'darkgreen'
             elif vertice == ruta_resaltada[-1]:
                 # Vértice de destino
-                color = 'red'
-                tamaño = 400
+                color = '#DD0000'
+                tamaño = 500
                 marcador = 's'
+                borde = 'darkred'
             elif vertice in ruta_resaltada:
                 # Vértice intermedio en la ruta
-                color = 'orange'
-                tamaño = 300
+                color = '#FFA500'
+                tamaño = 350
                 marcador = 'o'
+                borde = 'darkorange'
             else:
-                # Vértice no en la ruta
-                color = 'lightblue'
-                tamaño = 200
+                # Vértice no en la ruta (intersección normal)
+                color = '#4A90E2'
+                tamaño = 250
                 marcador = 'o'
+                borde = '#2E5C8A'
         else:
-            color = 'lightblue'
-            tamaño = 200
+            # Sin ruta seleccionada
+            color = '#4A90E2'
+            tamaño = 250
             marcador = 'o'
+            borde = '#2E5C8A'
         
+        # Dibujar el marcador
         ax.scatter(x, y, c=color, s=tamaño, marker=marcador, 
-                  edgecolors='black', linewidths=2, zorder=3)
+                  edgecolors=borde, linewidths=2.5, zorder=5, alpha=0.9)
         
-        # Agregar etiquetas con el nombre del vértice
+        # Agregar etiquetas con el ID del vértice
         nombre = grafo.nombres_vertices.get(vertice, vertice)
-        # Mostrar solo el ID para no saturar
-        ax.text(x, y + 0.3, vertice, fontsize=8, ha='center', 
-               fontweight='bold', bbox=dict(boxstyle='round,pad=0.3', 
-               facecolor='white', alpha=0.8))
+        # Calcular offset para la etiqueta
+        offset_y = 0.002 if ruta_resaltada and vertice in ruta_resaltada else 0.0015
+        
+        ax.text(x, y + offset_y, vertice, fontsize=9, ha='center', 
+               fontweight='bold', bbox=dict(boxstyle='round,pad=0.4', 
+               facecolor='white', edgecolor=borde, alpha=0.95, linewidth=1.5),
+               zorder=6)
     
-    # Crear leyenda
+    # Crear leyenda estilo mapa
     leyenda_elementos = [
-        mpatches.Patch(color='lightblue', label='Intersección'),
+        mpatches.Patch(color='#696969', label='Calles', alpha=0.3),
     ]
     
     if ruta_resaltada:
         leyenda_elementos.extend([
-            mpatches.Patch(color='green', label='Inicio'),
-            mpatches.Patch(color='red', label='Destino'),
-            mpatches.Patch(color='orange', label='Ruta'),
+            mpatches.Patch(color='#00AA00', label='⬤ Origen'),
+            mpatches.Patch(color='#DD0000', label='■ Destino'),
+            mpatches.Patch(color='#FF0000', label='─ Ruta Óptima'),
+            mpatches.Patch(color='#FFA500', label='⬤ Paso'),
         ])
+    else:
+        leyenda_elementos.append(
+            mpatches.Patch(color='#4A90E2', label='⬤ Intersecciones')
+        )
     
-    ax.legend(handles=leyenda_elementos, loc='upper right', fontsize=9)
+    ax.legend(handles=leyenda_elementos, loc='upper right', fontsize=10, 
+             framealpha=0.95, edgecolor='black', fancybox=True, shadow=True)
     
-    # Ajustar los límites del gráfico
+    # Ajustar los límites del gráfico con márgenes apropiados
     if grafo.coordenadas:
         xs = [coord[0] for coord in grafo.coordenadas.values()]
         ys = [coord[1] for coord in grafo.coordenadas.values()]
-        margen = 0.5
-        ax.set_xlim(min(xs) - margen, max(xs) + margen)
-        ax.set_ylim(min(ys) - margen, max(ys) + margen)
+        margen_x = (max(xs) - min(xs)) * 0.08
+        margen_y = (max(ys) - min(ys)) * 0.08
+        ax.set_xlim(min(xs) - margen_x, max(xs) + margen_x)
+        ax.set_ylim(min(ys) - margen_y, max(ys) + margen_y)
     
-    ax.set_aspect('equal')
+    # Mantener aspecto para que se vea como mapa real
+    ax.set_aspect('equal', adjustable='box')
 
 
 def crear_grafo_networkx(grafo):
@@ -161,26 +184,38 @@ def mostrar_info_ruta(ruta: List[str], coste: float, criterio: str, grafo) -> st
         str: Texto formateado con la información de la ruta
     """
     if not ruta or coste == float('inf'):
-        return "❌ No se encontró una ruta válida entre los puntos seleccionados."
+        return ("❌ NO SE ENCONTRÓ RUTA\n\n"
+                "No existe una ruta válida entre los puntos seleccionados.\n"
+                "Esto puede deberse a calles de un solo sentido.")
     
     texto = "✅ RUTA ÓPTIMA ENCONTRADA\n"
-    texto += "=" * 50 + "\n\n"
+    texto += "=" * 60 + "\n\n"
     
-    # Información del criterio
+    # Información del criterio con mejor formato
     if criterio == 'distancia':
-        texto += f"📏 Distancia total: {coste:.0f} metros ({coste/1000:.2f} km)\n"
+        texto += f"📏 DISTANCIA TOTAL: {coste:.0f} metros ({coste/1000:.2f} km)\n"
     else:
-        texto += f"⏱️ Tiempo total: {coste:.1f} minutos\n"
+        texto += f"⏱️  TIEMPO TOTAL: {coste:.1f} minutos\n"
     
-    texto += f"📍 Número de intersecciones: {len(ruta)}\n\n"
+    texto += f"📍 INTERSECCIONES: {len(ruta)}\n"
+    texto += f"🚗 TRAMOS: {len(ruta) - 1}\n\n"
     
-    # Detalles de la ruta
-    texto += "🗺️ RECORRIDO DETALLADO:\n"
-    texto += "-" * 50 + "\n\n"
+    # Detalles de la ruta con mejor formato
+    texto += "🗺️  RECORRIDO PASO A PASO:\n"
+    texto += "─" * 60 + "\n\n"
     
     for i, vertice in enumerate(ruta):
         nombre = grafo.nombres_vertices.get(vertice, vertice)
-        texto += f"{i+1}. {vertice}: {nombre}\n"
+        
+        # Formato especial para origen y destino
+        if i == 0:
+            texto += f"🟢 INICIO: {vertice}\n"
+        elif i == len(ruta) - 1:
+            texto += f"🔴 DESTINO: {vertice}\n"
+        else:
+            texto += f"🟠 Paso {i}: {vertice}\n"
+        
+        texto += f"   {nombre}\n"
         
         # Mostrar información del tramo si no es el último vértice
         if i < len(ruta) - 1:
@@ -188,7 +223,10 @@ def mostrar_info_ruta(ruta: List[str], coste: float, criterio: str, grafo) -> st
             # Buscar la arista entre los dos vértices
             for vecino, dist, tiemp in grafo.obtener_vecinos(vertice):
                 if vecino == siguiente:
-                    texto += f"   ↓ {dist:.0f}m ({tiemp:.1f} min)\n"
+                    texto += f"   │\n"
+                    texto += f"   ↓  {dist:.0f} metros • {tiemp:.1f} minutos\n"
+                    texto += f"   │\n"
                     break
     
+    texto += "\n" + "=" * 60 + "\n"
     return texto

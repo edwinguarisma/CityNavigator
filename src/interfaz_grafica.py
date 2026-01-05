@@ -15,6 +15,7 @@ from matplotlib.figure import Figure
 from grafo import Grafo
 from datos_puerto_ordaz import crear_grafo_puerto_ordaz, obtener_puntos_interes
 from visualizador import dibujar_grafo, mostrar_info_ruta
+from modal_resultados import crear_modal_resultados
 
 
 class AplicacionCityNavigator:
@@ -32,7 +33,8 @@ class AplicacionCityNavigator:
         """
         self.ventana = ventana_principal
         self.ventana.title("CityNavigator - Puerto Ordaz")
-        self.ventana.geometry("1400x800")
+        self.ventana.geometry("1600x900")  # Ventana más grande
+        self.ventana.state('zoomed')  # Maximizar ventana al iniciar
         self.ventana.configure(bg='#f0f0f0')
         
         # Cargar el grafo de Puerto Ordaz
@@ -44,6 +46,12 @@ class AplicacionCityNavigator:
         self.vertice_destino = tk.StringVar()
         self.criterio_busqueda = tk.StringVar(value='distancia')
         self.algoritmo_seleccionado = tk.StringVar(value='dijkstra')
+        
+        # Variables para resultados
+        self.ultima_ruta = None
+        self.ultimo_coste = None
+        self.ultimo_criterio = None
+        self.ultimo_algoritmo = None
         
         # Configurar la interfaz
         self.configurar_interfaz()
@@ -71,7 +79,7 @@ class AplicacionCityNavigator:
         subtitulo.pack()
         
         # ========== PANEL IZQUIERDO - CONTROLES ==========
-        panel_controles = tk.Frame(self.ventana, bg='white', width=350, padx=15, pady=15)
+        panel_controles = tk.Frame(self.ventana, bg='white', width=400, padx=15, pady=15)
         panel_controles.pack(fill='y', side='left', padx=10, pady=10)
         panel_controles.pack_propagate(False)
         
@@ -92,8 +100,8 @@ class AplicacionCityNavigator:
                                         values=self.obtener_lista_vertices(),
                                         state='readonly',
                                         font=('Segoe UI', 9),
-                                        width=30)
-        self.combo_origen.pack(pady=5)
+                                        width=35)
+        self.combo_origen.pack(pady=5, fill='x')
         self.combo_origen.set("Seleccione origen...")
         
         # ===== SECCIÓN: Selección de Destino =====
@@ -107,8 +115,8 @@ class AplicacionCityNavigator:
                                          values=self.obtener_lista_vertices(),
                                          state='readonly',
                                          font=('Segoe UI', 9),
-                                         width=30)
-        self.combo_destino.pack(pady=5)
+                                         width=35)
+        self.combo_destino.pack(pady=5, fill='x')
         self.combo_destino.set("Seleccione destino...")
         
         # ===== SECCIÓN: Criterio de Búsqueda =====
@@ -195,20 +203,33 @@ class AplicacionCityNavigator:
                                       bd=2)
         boton_estadisticas.pack(fill='x', pady=5)
         
+        # ===== BOTÓN VER RESULTADOS (OCULTO INICIALMENTE) =====
+        self.boton_ver_resultados = tk.Button(frame_botones,
+                                              text="📋 Ver Detalles",
+                                              command=self.mostrar_modal_resultados,
+                                              bg='#9b59b6',
+                                              fg='white',
+                                              font=('Segoe UI', 11, 'bold'),
+                                              cursor='hand2',
+                                              relief='raised',
+                                              bd=2,
+                                              state='disabled')  # Deshabilitado inicialmente
+        self.boton_ver_resultados.pack(fill='x', pady=5)
+        
         # ===== INFORMACIÓN DEL PROYECTO =====
-        frame_info = tk.Frame(panel_controles, bg='#ecf0f1', bd=2, relief='groove')
-        frame_info.pack(fill='x', side='bottom', pady=(10, 0))
+        # frame_info = tk.Frame(panel_controles, bg='#ecf0f1', bd=2, relief='groove')
+        # frame_info.pack(fill='x', side='bottom', pady=(10, 0))
         
-        tk.Label(frame_info,
-                text="ℹ️ Información",
-                font=('Segoe UI', 9, 'bold'),
-                bg='#ecf0f1').pack(pady=(5, 2))
+        # tk.Label(frame_info,
+        #         text="ℹ️ Información",
+        #         font=('Segoe UI', 9, 'bold'),
+        #         bg='#ecf0f1').pack(pady=(5, 2))
         
-        tk.Label(frame_info,
-                text="Proyecto: Grafos Urbanos\nEstructura de Datos\n2026",
-                font=('Segoe UI', 8),
-                bg='#ecf0f1',
-                justify='center').pack(pady=(0, 5))
+        # tk.Label(frame_info,
+        #         text="Proyecto: Grafos Urbanos\nEstructura de Datos\n2026",
+        #         font=('Segoe UI', 8),
+        #         bg='#ecf0f1',
+        #         justify='center').pack(pady=(0, 5))
         
         # ========== PANEL DERECHO - VISUALIZACIÓN Y RESULTADOS ==========
         panel_derecho = tk.Frame(self.ventana, bg='#f0f0f0')
@@ -222,35 +243,14 @@ class AplicacionCityNavigator:
                                       padx=10, pady=10)
         frame_grafico.pack(fill='both', expand=True, pady=(0, 10))
         
-        # Crear figura de matplotlib
-        self.figura = Figure(figsize=(10, 6), dpi=100)
+        # Crear figura de matplotlib con mejor tamaño
+        self.figura = Figure(figsize=(12, 7), dpi=100)
         self.ax = self.figura.add_subplot(111)
+        self.figura.tight_layout(pad=3.0)
         
         # Canvas para el gráfico
         self.canvas = FigureCanvasTkAgg(self.figura, frame_grafico)
         self.canvas.get_tk_widget().pack(fill='both', expand=True)
-        
-        # ===== PANEL DE RESULTADOS =====
-        frame_resultados = tk.LabelFrame(panel_derecho,
-                                        text="📋 Resultados de la Búsqueda",
-                                        font=('Segoe UI', 11, 'bold'),
-                                        bg='white',
-                                        padx=10, pady=10)
-        frame_resultados.pack(fill='both', pady=(0, 0))
-        
-        self.texto_resultados = scrolledtext.ScrolledText(frame_resultados,
-                                                          height=12,
-                                                          font=('Consolas', 9),
-                                                          wrap=tk.WORD,
-                                                          bg='#f9f9f9')
-        self.texto_resultados.pack(fill='both', expand=True)
-        
-        # Mensaje inicial
-        self.texto_resultados.insert('1.0', 
-            "Bienvenido a CityNavigator 🗺️\n\n"
-            "Seleccione un punto de origen y destino para comenzar.\n"
-            "Luego elija el criterio de optimización y presione 'Buscar Ruta'.\n\n"
-            "El sistema encontrará la mejor ruta según sus preferencias.")
     
     def obtener_lista_vertices(self):
         """
@@ -262,6 +262,9 @@ class AplicacionCityNavigator:
         vertices = []
         for vertice in sorted(self.grafo.vertices):
             nombre = self.grafo.nombres_vertices.get(vertice, vertice)
+            # Acortar nombres muy largos para mejor visualización
+            if len(nombre) > 40:
+                nombre = nombre[:37] + "..."
             vertices.append(f"{vertice} - {nombre}")
         return vertices
     
@@ -322,20 +325,27 @@ class AplicacionCityNavigator:
             coste: Coste total de la ruta
             criterio: Criterio usado ('distancia' o 'tiempo')
         """
-        # Limpiar resultados anteriores
-        self.texto_resultados.delete('1.0', tk.END)
-        
-        # Generar texto de resultados
-        texto = mostrar_info_ruta(ruta, coste, criterio, self.grafo)
-        self.texto_resultados.insert('1.0', texto)
+        # Guardar resultados para el modal
+        self.ultima_ruta = ruta
+        self.ultimo_coste = coste
+        self.ultimo_criterio = criterio
+        self.ultimo_algoritmo = 'Dijkstra'
         
         # Actualizar visualización con la ruta
         self.actualizar_visualizacion(ruta)
         
+        # Habilitar botón de resultados
+        self.boton_ver_resultados.config(state='normal', bg='#9b59b6')
+        
         # Mostrar notificación
         if ruta and coste != float('inf'):
-            messagebox.showinfo("✅ Ruta Encontrada",
-                               f"Se encontró una ruta óptima con {len(ruta)} intersecciones")
+            if criterio == 'distancia':
+                mensaje = f"Ruta encontrada: {coste:.0f} metros ({len(ruta)} intersecciones)"
+            else:
+                mensaje = f"Ruta encontrada: {coste:.1f} minutos ({len(ruta)} intersecciones)"
+            messagebox.showinfo("✅ Ruta Encontrada", mensaje)
+        else:
+            messagebox.showwarning("❌ Sin Ruta", "No se encontró una ruta entre los puntos seleccionados")
     
     def mostrar_resultados_busqueda(self, ruta, encontrado, nombre_algoritmo):
         """
@@ -346,45 +356,46 @@ class AplicacionCityNavigator:
             encontrado: Boolean indicando si se encontró conexión
             nombre_algoritmo: Nombre del algoritmo usado
         """
-        self.texto_resultados.delete('1.0', tk.END)
+        # Guardar resultados para el modal
+        self.ultima_ruta = ruta if encontrado else []
+        self.ultimo_coste = len(ruta) if encontrado else float('inf')
+        self.ultimo_criterio = 'conexion'
+        self.ultimo_algoritmo = nombre_algoritmo
         
-        if encontrado:
-            texto = f"✅ CONEXIÓN ENCONTRADA ({nombre_algoritmo})\n"
-            texto += "=" * 50 + "\n\n"
-            texto += f"📍 Número de intersecciones: {len(ruta)}\n\n"
-            texto += f"🗺️ RECORRIDO:\n"
-            texto += "-" * 50 + "\n\n"
-            
-            for i, vertice in enumerate(ruta):
-                nombre = self.grafo.nombres_vertices.get(vertice, vertice)
-                texto += f"{i+1}. {vertice}: {nombre}\n"
-            
-            texto += f"\n⚠️ Nota: {nombre_algoritmo} encuentra un camino pero no "
-            texto += "garantiza que sea el más corto u óptimo."
-        else:
-            texto = f"❌ NO SE ENCONTRÓ CONEXIÓN ({nombre_algoritmo})\n\n"
-            texto += "No existe un camino entre el origen y destino seleccionados.\n"
-            texto += "Esto puede deberse a calles de un solo sentido que no permiten la conexión."
-        
-        self.texto_resultados.insert('1.0', texto)
+        # Actualizar visualización
         self.actualizar_visualizacion(ruta if encontrado else None)
         
+        # Habilitar botón de resultados si se encontró ruta
+        if encontrado:
+            self.boton_ver_resultados.config(state='normal', bg='#9b59b6')
+        else:
+            self.boton_ver_resultados.config(state='disabled', bg='#cccccc')
+        
+        # Mostrar notificación
         if encontrado:
             messagebox.showinfo("✅ Conexión Encontrada",
-                               f"Se encontró un camino con {len(ruta)} intersecciones")
+                               f"Se encontró un camino con {len(ruta)} intersecciones\n\n"
+                               f"Presione 'Ver Detalles de la Ruta' para más información")
         else:
             messagebox.showwarning("❌ Sin Conexión",
                                   "No existe un camino entre los puntos seleccionados")
     
     def limpiar_resultados(self):
         """Limpia los resultados y resetea la visualización."""
-        self.texto_resultados.delete('1.0', tk.END)
-        self.texto_resultados.insert('1.0',
-            "Resultados limpiados.\n\n"
-            "Seleccione nuevos puntos para buscar otra ruta.")
+        # Deshabilitar botón de resultados
+        self.boton_ver_resultados.config(state='disabled', bg='#cccccc')
         
+        # Limpiar variables de resultados
+        self.ultima_ruta = None
+        self.ultimo_coste = None
+        self.ultimo_criterio = None
+        self.ultimo_algoritmo = None
+        
+        # Resetear selecciones
         self.combo_origen.set("Seleccione origen...")
         self.combo_destino.set("Seleccione destino...")
+        
+        # Actualizar visualización
         self.actualizar_visualizacion()
     
     def mostrar_estadisticas(self):
@@ -406,6 +417,23 @@ class AplicacionCityNavigator:
                 mensaje += f"  • {nombre}\n"
         
         messagebox.showinfo("Estadísticas del Grafo", mensaje)
+    
+    def mostrar_modal_resultados(self):
+        """Muestra la ventana modal con los detalles de la ruta."""
+        if self.ultima_ruta is None:
+            messagebox.showwarning("Sin Resultados",
+                                  "No hay resultados para mostrar.\n"
+                                  "Primero busque una ruta.")
+            return
+        
+        crear_modal_resultados(
+            self.ventana,
+            self.ultima_ruta,
+            self.ultimo_coste,
+            self.ultimo_criterio,
+            self.ultimo_algoritmo,
+            self.grafo
+        )
     
     def actualizar_visualizacion(self, ruta=None):
         """
