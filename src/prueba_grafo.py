@@ -39,8 +39,8 @@ def probar_dijkstra(grafo):
     print("=" * 60)
     
     # Prueba 1: De Plaza Mayor a Centro Cívico por distancia
-    print("\n📍 Prueba 2.1: V14 → V13 (por distancia)")
-    ruta, coste = grafo.dijkstra('V14', 'V13', 'distancia')
+    print("\n📍 Prueba 2.1: PlazaMayor → CentroCívico (por distancia)")
+    ruta, coste = grafo.dijkstra('PlazaMayor', 'CentroCívico', 'distancia')
     
     if ruta:
         print(f"✅ Ruta encontrada:")
@@ -50,8 +50,8 @@ def probar_dijkstra(grafo):
         print("❌ No se encontró ruta")
     
     # Prueba 2: De Plaza Mayor a Centro Cívico por tiempo
-    print("\n📍 Prueba 2.2: V14 → V13 (por tiempo)")
-    ruta, coste = grafo.dijkstra('V14', 'V13', 'tiempo')
+    print("\n📍 Prueba 2.2: PlazaMayor → CentroCívico (por tiempo)")
+    ruta, coste = grafo.dijkstra('PlazaMayor', 'CentroCívico', 'tiempo')
     
     if ruta:
         print(f"✅ Ruta encontrada:")
@@ -60,9 +60,9 @@ def probar_dijkstra(grafo):
     else:
         print("❌ No se encontró ruta")
     
-    # Prueba 3: De V1 a V12
-    print("\n📍 Prueba 2.3: V1 → V12 (por distancia)")
-    ruta, coste = grafo.dijkstra('V1', 'V12', 'distancia')
+    # Prueba 3: De Guayana-Bolivia a VillaAsia-Venezuela
+    print("\n📍 Prueba 2.3: Guayana-Bolivia → VillaAsia-Venezuela (por distancia)")
+    ruta, coste = grafo.dijkstra('Guayana-Bolivia', 'VillaAsia-Venezuela', 'distancia')
     
     if ruta:
         print(f"✅ Ruta encontrada:")
@@ -81,8 +81,8 @@ def probar_bfs(grafo):
     print("PRUEBA 3: Algoritmo BFS")
     print("=" * 60)
     
-    print("\n📍 Prueba 3.1: V15 → V12")
-    encontrado, ruta = grafo.bfs('V15', 'V12')
+    print("\n📍 Prueba 3.1: Terminal → VillaAsia-Venezuela")
+    encontrado, ruta = grafo.bfs('Terminal', 'VillaAsia-Venezuela')
     
     if encontrado:
         print(f"✅ Conexión encontrada:")
@@ -91,8 +91,8 @@ def probar_bfs(grafo):
     else:
         print("❌ No hay conexión")
     
-    print("\n📍 Prueba 3.2: V1 → V13")
-    encontrado, ruta = grafo.bfs('V1', 'V13')
+    print("\n📍 Prueba 3.2: Guayana-Bolivia → CentroCívico")
+    encontrado, ruta = grafo.bfs('Guayana-Bolivia', 'CentroCívico')
     
     if encontrado:
         print(f"✅ Conexión encontrada:")
@@ -110,8 +110,8 @@ def probar_dfs(grafo):
     print("PRUEBA 4: Algoritmo DFS")
     print("=" * 60)
     
-    print("\n📍 Prueba 4.1: V1 → V8")
-    encontrado, ruta = grafo.dfs('V1', 'V8')
+    print("\n📍 Prueba 4.1: Guayana-Bolivia → LasAméricas-Venezuela")
+    encontrado, ruta = grafo.dfs('Guayana-Bolivia', 'LasAméricas-Venezuela')
     
     if encontrado:
         print(f"✅ Conexión encontrada:")
@@ -145,8 +145,8 @@ def comparar_algoritmos(grafo):
     print("PRUEBA 6: Comparación de Algoritmos")
     print("=" * 60)
     
-    origen = 'V1'
-    destino = 'V13'
+    origen = 'Guayana-Bolivia'
+    destino = 'CentroCívico'
     
     print(f"\n🎯 Ruta: {origen} → {destino}\n")
     

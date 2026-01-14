@@ -1,0 +1,26 @@
+{
+    "nodos": [
+        {
+            "id": "lomas_del_caroni",
+            "nombre": "lomas del caroni",
+            "coordenadas": [
+                -62.75470503860738,
+                8.239949901412356
+            ]
+        }
+    ],
+    "conexiones": [
+        {
+            "origen": "lomas_del_caroni",
+            "destino": "VillaAsia-Chile",
+            "distancia": 4000.0,
+            "tiempo": 150.0
+        },
+        {
+            "origen": "VillaAsia-Chile",
+            "destino": "lomas_del_caroni",
+            "distancia": 4000.0,
+            "tiempo": 150.0
+        }
+    ]
+}

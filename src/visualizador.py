@@ -101,14 +101,15 @@ def dibujar_grafo(grafo, ax, ruta_resaltada: List[str] = None):
         ax.scatter(x, y, c=color, s=tamaño, marker=marcador, 
                   edgecolors=borde, linewidths=2.5, zorder=5, alpha=0.9)
         
-        # Agregar etiquetas con el ID del vértice
+        # Agregar etiquetas con el ID del vértice (tamaño reducido)
         nombre = grafo.nombres_vertices.get(vertice, vertice)
         # Calcular offset para la etiqueta
-        offset_y = 0.002 if ruta_resaltada and vertice in ruta_resaltada else 0.0015
+        offset_y = 0.0025 if ruta_resaltada and vertice in ruta_resaltada else 0.002
         
-        ax.text(x, y + offset_y, vertice, fontsize=9, ha='center', 
-               fontweight='bold', bbox=dict(boxstyle='round,pad=0.4', 
-               facecolor='white', edgecolor=borde, alpha=0.95, linewidth=1.5),
+        # Reducir tamaño de fuente y ajustar padding
+        ax.text(x, y + offset_y, vertice, fontsize=7, ha='center', 
+               fontweight='bold', bbox=dict(boxstyle='round,pad=0.25', 
+               facecolor='white', edgecolor=borde, alpha=0.95, linewidth=1.2),
                zorder=6)
     
     # Crear leyenda estilo mapa
